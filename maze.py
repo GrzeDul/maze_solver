@@ -23,9 +23,7 @@ class Maze:
         self._create_cells()
         self._break_entrence_and_exit()
         random.seed(seed)
-        for i in range(self._num_cols):
-            for j in range(self._num_rows):
-                self._break_all_r(i,j)
+        self._break_all_r(0,0)      
                 
     def _create_cells(self):
         for col_num in range(self._num_cols):
@@ -62,6 +60,35 @@ class Maze:
         self._draw_cell(self._num_cols-1, self._num_rows-1)
     
     def _break_all_r(self, i, j):
-        pass
+        current = self._cells[i][j]
+        current.visited = True
+        adjecent_cells = {
+        'left': None,
+        'top' : None,
+        'right': None,
+        'bottom': None}
+        while True:
+            not_visited = []
+            if i != 0:
+                adjecent_cells['left'] = (i-1,j,'left','right')
+            if j != 0:
+                adjecent_cells['top'] = (i,j-1,'top','bottom')
+            if i != self._num_cols-1:
+                adjecent_cells['right'] = (i+1,j,'right','left')
+            if j != self._num_rows-1:
+                adjecent_cells['bottom'] = (i,j+1,'bottom','top')
+            for tuple in adjecent_cells.values():
+                if tuple and not self._cells[tuple[0]][tuple[1]].visited:
+                    not_visited.append(tuple)
+            if not not_visited:
+                return
+            next_cell_ij = random.choice(not_visited)
+            next_cell = self._cells[next_cell_ij[0]][next_cell_ij[1]]
+            setattr(current,f'has_{next_cell_ij[2]}_wall', False)
+            setattr(next_cell,f'has_{next_cell_ij[3]}_wall', False)
+            self._draw_cell(i, j)
+            self._draw_cell(next_cell_ij[0], next_cell_ij[1])
+            self._break_all_r(next_cell_ij[0], next_cell_ij[1])
+        
 
             
