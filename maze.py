@@ -20,10 +20,12 @@ class Maze:
         self._cell_size_y = cell_size_y
         self._win = win
         self._cells = []
+        self._way = []
         self._create_cells()
         self._break_entrence_and_exit()
         random.seed(seed)
         self._break_all_r(0,0)      
+        self._reset_visited()
                 
     def _create_cells(self):
         for col_num in range(self._num_cols):
@@ -51,7 +53,7 @@ class Maze:
         if self._win is None:
             return
         self._win.redraw()
-        time.sleep(0.00)
+        time.sleep(0.01)
     
     def _break_entrence_and_exit(self):
         self._cells[0][0].has_left_wall = False
@@ -89,6 +91,56 @@ class Maze:
             self._draw_cell(i, j)
             self._draw_cell(next_cell_ij[0], next_cell_ij[1])
             self._break_all_r(next_cell_ij[0], next_cell_ij[1])
+
+    def _reset_visited(self):
+        for i in range(self._num_cols):
+            for j in range(self._num_rows):
+                self._cells[i][j].visited = False
+    
+    def _solve_maze_r(self, i, j):
+        current = self._cells[i][j]
+        current.visited = True
+        adjecent_cells = {
+        'left': None,
+        'top' : None,
+        'right': None,
+        'bottom': None}
+
+        while True:
+            if i == self._num_cols-1 and j == self._num_rows - 1:
+                self._way.append(current)
+                return True
+            not_visited = []
+            if i != 0:
+                adjecent_cells['left'] = (i-1,j,'left')
+            if j != 0:
+                adjecent_cells['top'] = (i,j-1,'top')
+            if i != self._num_cols-1:
+                adjecent_cells['right'] = (i+1,j,'right')
+            if j != self._num_rows-1:
+                adjecent_cells['bottom'] = (i,j+1,'bottom')
+            for tuple in adjecent_cells.values():
+                if tuple and not self._cells[tuple[0]][tuple[1]].visited:
+                    if not getattr(current,f'has_{tuple[2]}_wall'):
+                        not_visited.append(tuple)
+            if not not_visited:
+                return False
+            next_cell_ij = random.choice(not_visited)
+            next_cell = self._cells[next_cell_ij[0]][next_cell_ij[1]]
+            outcome = self._solve_maze_r(next_cell_ij[0], next_cell_ij[1])
+            if outcome :
+                self._way.append(current)
+                return True
+    
+    def _solve_maze(self):
+        self._solve_maze_r(0,0)
+        print(len(self._way))
+        for i in reversed(range(len(self._way)-1)):
+            self._animate()
+            self._way[i+1].draw_move(self._way[i])
+
+            
+
         
 
             
